@@ -1,0 +1,27 @@
+{#
+    Default view for paginator.
+#}
+<nav aria-label="...">
+    <ul class="pager">
+        {% if paginator.getCurrentPage < paginator.getNbPages %}
+            {% set next = (paginator.getCurrentPage + 1) %}
+            <li class="next">
+                <a href="{{ url(route_name, {'page': next}) }}" title="{{ 'labels.nav.next'|trans }}">
+                    {{ 'labels.nav.next'|trans }}<span aria-hidden="true">&rarr;</span>
+                </a>
+            </li>
+
+        {% endif  %}
+
+        {% if paginator.getCurrentPage > 1 %}
+            {% set previous = (paginator.getCurrentPage - 1) %}
+            <li class="previous">
+                <a href="{{ url(route_name, {'page': previous}) }}" title="{{ 'labels.nav.prev'|trans }}">
+                    <span aria-hidden="true">&larr;</span>{{ 'labels.nav.prev'|trans }}
+                </a>
+            </li>
+
+        {%  endif %}
+
+    </ul>
+</nav>

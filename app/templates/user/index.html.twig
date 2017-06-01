@@ -1,0 +1,29 @@
+{%  extends 'layout.html.twig' %}
+
+{%  block title %}
+    {{ 'title.users_list'|trans }}
+{%  endblock %}
+
+{%  block body %}
+    <h1>
+        {{ 'title.users_list'|trans }}
+    </h1>
+    {%  if paginator|length %}
+        <ul>
+            {% for row in paginator %}
+                <li>{{ row.login }}, {{ row.id }}</li>
+                <a href="{{ url('user_delete', {'id': row.id}) }}" title="{{ 'delete.user'|trans }}">
+                    {{ 'delete.user'|trans }}
+                </a>
+            {% endfor %}
+            {%  include 'default/_paginator.html.twig' with {
+            paginator: paginator,
+            route_name: 'user_index_paginated',
+            } %}
+        </ul>
+    {% else %}
+        <div>
+            List is empty!
+        </div>
+    {% endif %}
+{%  endblock %}

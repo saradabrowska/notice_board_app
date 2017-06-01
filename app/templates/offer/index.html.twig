@@ -1,0 +1,38 @@
+{%  extends 'layout.html.twig' %}
+
+{%  block title %}
+    {{ 'title.offers_list'|trans }}
+{%  endblock %}
+
+{%  block body %}
+    <h1>
+        {{ 'title.offers_list'|trans }}
+    </h1>
+    {%  if paginator|length %}
+        <ul>
+            {% for row in paginator %}
+                <li>{{ row.title }}, {{ row.id }}</li>
+                <a href="{{ url('offer_view', {'id': row.id}) }}" title="{{ 'label.offer_view'|trans }}">
+                    {{ 'label.view'|trans }}
+                </a>
+                <a href="{{ url('offer_edit', {'id': row.id}) }}" title="{{ 'edit.offer'|trans }}">
+                    {{ 'edit.offer'|trans }}
+                </a>
+                <a href="{{ url('offer_delete', {'id': row.id}) }}" title="{{ 'delete.offer'|trans }}">
+                    {{ 'delete.offer'|trans }}
+                </a>
+            {% endfor %}
+            {%  include 'default/_paginator.html.twig' with {
+            paginator: paginator,
+            route_name: 'offer_index_paginated',
+            } %}
+        </ul>
+    {% else %}
+        <div>
+            List is empty!
+        </div>
+    {% endif %}
+    <a href="{{ url('offer_add') }}" title="{{ 'add.offer'|trans }}">
+        {{ 'add.offer'|trans }}
+    </a>
+{%  endblock %}

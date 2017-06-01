@@ -1,0 +1,23 @@
+{% extends 'layout.html.twig' %}
+
+{%  block title %}
+    {{ 'title.offer_view'|trans({'%id%': id }) }}
+{% endblock %}
+
+{%  block body %}
+    <h1>
+        {{ 'title.offer_view'|trans({'%id%': id }) }}
+    </h1>
+    {%  if offer|length %}
+        <div>
+            {{ offer.login }}, {{ offer.id }}
+        </div>
+    {%  else %}
+        <div>
+            {{ 'message.no_offer'|trans }}
+        </div>
+    {% endif %}
+    <a href="{{ url('offer_index') }}" title="{{ 'label.back_to_list'|trans }}">
+        {{ 'label.back_to_list'|trans }}
+    </a>
+{% endblock %}

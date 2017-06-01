@@ -1,0 +1,10 @@
+/vendor/
+vendor
+composer.lock
+var/*
+!/var/cache
+var/cache/*
+!var/cache/.gitkeep
+!/var/logs
+var/logs/*
+!var/logs/.gitkeep

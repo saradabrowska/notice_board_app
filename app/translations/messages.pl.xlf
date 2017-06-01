@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file source-language="en" target-language="pl" datatype="plaintext" original="file.ext">
+        <body>
+            <trans-unit id="title.offers_list">
+                <source>title.offers_list</source>
+                <target>Oferty</target>
+            </trans-unit>
+            <trans-unit id="title.offer_view">
+                <source>title.offer_view</source>
+                <target>Oferta #%id%</target>
+            </trans-unit>
+            <trans-unit id="label.offer_view">
+                 <source>label.offer_view</source>
+                 <target>Zobacz ofertę</target>
+            </trans-unit>
+            <trans-unit id="label.back_to_offer_list">
+                  <source>label.back_to_offer_list</source>
+                  <target>Wróć do listy ofert</target>
+            </trans-unit>
+            <trans-unit id="message.no_offer">
+                  <source>message.no_offer</source>
+                  <target>Nie ma takiej oferty</target>
+            </trans-unit>
+            <trans-unit id="labels.nav.next">
+                  <source>labels.nav.next</source>
+                  <target>Następna strona</target>
+            </trans-unit>
+            <trans-unit id="labels.nav.prev">
+                  <source>labels.nav.prev</source>
+                  <target>Poprzednia strona</target>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>
