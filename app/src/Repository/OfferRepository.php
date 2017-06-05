@@ -3,11 +3,9 @@
  * Notice repository.
  */
 namespace Repository;
-
 use Doctrine\DBAL\Connection;
 use Pagerfanta\Pagerfanta;
 use Pagerfanta\Adapter\DoctrineDbalAdapter;
-
 /**
  * Class OfferRepository.
  *
@@ -21,14 +19,12 @@ class OfferRepository
      * const int NUM_ITEMS
      */
     const NUM_ITEMS = 2;
-
     /**
      * Doctrine DBAL connection.
      *
      * @var \Doctrine\DBAL\Connection $db
      */
     protected $db;
-
     /**
      * OfferRepository constructor.
      *
@@ -38,7 +34,6 @@ class OfferRepository
     {
         $this->db = $db;
     }
-
     /**
      * Fetch all records.
      *
@@ -50,22 +45,17 @@ class OfferRepository
             $queryBuilder->select('COUNT(DISTINCT id) AS total_results')
                 ->setMaxResults(1);
         };
-
         $adapter = new DoctrineDbalAdapter($this->queryAll($table), $countQueryBuilderModifier);
-
         $pagerfanta = new Pagerfanta($adapter);
         $pagerfanta->setMaxPerPage(self::NUM_ITEMS);
         $pagerfanta->setCurrentPage($page);
-
         return $pagerfanta;
     }
-
     public function findAll($table)
     {
         $queryBuilder = $this->queryAll($table);
         return $queryBuilder->execute()->fetchAll();
     }
-
     /**
      * Find one record.
      *
@@ -79,10 +69,8 @@ class OfferRepository
             ->where('id = :id')
             ->setParameter(':id', $id);
         $result = $queryBuilder->execute()->fetch();
-
         return !$result ? [] : $result;
     }
-
     /**
      * Save record.
      *
@@ -92,18 +80,35 @@ class OfferRepository
      */
     public function save($object)
     {
-        if (isset($object['id']) && ctype_digit((string) $object['id'])) {
-            // update record
-            $id = $object['id'];
-            unset($object['id']);
-
-            return $this->db->update('offers', $object, ['id' => $id]);
-        } else {
-            // add new record
-            return $this->db->insert('offers', $object);
+        $this->db->beginTransaction();
+        try {
+            $currentDateTime = new \DateTime();
+            $object['created_at'] = $currentDateTime->format('Y-m-d H:i:s');
+            $cityName = $object['cities_id'];
+            unset($object['cities_id']);
+            $cityId = $this->findCityId($cityName);
+            if ($cityId) {
+                $object['cities_id'] = $cityId;
+            } else {
+                $this->addCity($cityName);
+                $cityId = $this->findCityId($cityName);
+                $object['cities_id'] = $cityId;
+            }
+            if (isset($object['id']) && ctype_digit((string)$object['id'])) {
+                // update record
+                $id = $object['id'];
+                unset($object['id']);
+                $this->db->update('offers', $object, ['id' => $id]);
+            } else {
+                // add new record
+                $this->db->insert('offers', $object);
+            }
+            $this->db->commit();
+        } catch (DBALException $e) {
+            $this->db->rollBack();
+            throw $e;
         }
     }
-
     /**
      * Remove record.
      *
@@ -115,12 +120,16 @@ class OfferRepository
     {
         return $this->db->delete($table, ['id' => $object['id']]);
     }
-
     public function findMatchingOffers($match, $table)
     {
+        $cityId = $this->findCityId($match['cities_id']);
+        $match['cities_id'] = $cityId;
         $queryBuilder = $this->queryAll($table)
-            ->where('offer_types_id = :offer_types_id')
-            ->setParameter(':offer_types_id', $match['offer_types_id']);
+            ->where('offer_types_id = :offer_types_id',
+                'property_types_id = :property_types_id', 'cities_id = :cities_id')
+            ->setParameter(':offer_types_id', $match['offer_types_id'])
+            ->setParameter(':property_types_id', $match['property_types_id'])
+            ->setParameter(':cities_id', $match['cities_id']);
         $result = $queryBuilder->execute()->fetch();
         var_dump($result);
         return !$result ? [] : $result;
@@ -135,5 +144,24 @@ class OfferRepository
         $queryBuilder = $this->db->createQueryBuilder();
         return $queryBuilder->select('*')
             ->from($table);
+    }
+    protected function findCityId($cityName)
+    {
+        $queryBuilder = $this->db->createQueryBuilder()
+            ->select('id')
+            ->from('cities')
+            ->where('name = :name')
+            ->setParameter(':name', $cityName, \PDO::PARAM_INT);
+        $result = $queryBuilder->execute()->fetchAll();
+        $result = isset($result) ? array_column($result, 'id') : [];
+        return current($result);
+    }
+    protected function addCity($cityName){
+        $this->db->insert(
+            'cities',
+            [
+                'name' => $cityName,
+            ]
+        );
     }
 }

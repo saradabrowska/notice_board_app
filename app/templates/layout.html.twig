@@ -5,12 +5,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Bootstrap 101 Template</title>
+    <title>{{ 'title.title'|trans }}</title>
 
     <!-- Bootstrap -->
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <!-- <link href="{{ asset('css/main.css') }}" rel="stylesheet">
-
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -20,44 +19,54 @@
 </head>
 <body>
 <!--<nav class="navbar navbar-default navbar-fixed-top" id="nav">
-
     <div class="container-fluid">
         <!-- Brand and toggle get grouped for better mobile display -->
-        <div class="navbar-header">
+<div class="navbar-header">
 
-            <a class="navbar-brand" href="{{ url('homepage') }}" title="{{ 'title.homepage'|trans }}">
-                {{ 'title.homepage'|trans }}
+    <a class="navbar-brand" href="{{ url('homepage') }}" title="{{ 'title.homepage'|trans }}">
+        {{ 'title.homepage'|trans }}
+    </a>
+</div>
+
+<!-- Collect the nav links, forms, and other content for toggling -->
+<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+    <ul class="nav navbar-nav">
+        <li>
+            <a href="{{ url('offer_index') }}" title="{{ 'title.offers_list'|trans }}">
+                {{ 'title.offers_list'|trans }}
             </a>
-        </div>
+        </li>
 
-        <!-- Collect the nav links, forms, and other content for toggling -->
-        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-            <ul class="nav navbar-nav">
-                <li>
-                    <a href="{{ url('offer_index') }}" title="{{ 'title.offers_list'|trans }}">
-                        {{ 'title.offers_list'|trans }}
-                    </a>
-                </li>
+    </ul>
 
-            </ul>
+    <ul class="nav navbar-nav navbar-right">
+        <li> {% if is_granted('IS_AUTHENTICATED_FULLY') %}
 
-            <ul class="nav navbar-nav navbar-right">
-                <li> {% if is_granted('IS_AUTHENTICATED_FULLY') %}
-                        <a class="btn btn-default" href="{{ url('auth_logout') }}" title="{{ 'auth.logout.label'|trans }}">
-                            {{ 'auth.logout.label'|trans }}
-                        </a>
+        <li>      <a class="btn btn-default" href="" title="{{ 'user_offers'|trans }}">
+                {{ 'user_offers'|trans }}
+            </a></li>
+        <li>      <a class="btn btn-default" href="" title="{{ 'user_edit'|trans }}">
+                {{ 'user_edit'|trans }}
+            </a></li>
 
-                    {% else %}
-                        <a class="btn btn-default" href="{{ url('auth_login') }}" title="{{ 'auth.login.label'|trans }}">
-                            {{ 'auth.login.label'|trans }}
-                        </a>
-                        <a class="btn btn-default" href="{{ url('user_add') }}" title="{{ 'user.add'|trans }}">
-                            {{ 'user.add'|trans }}
-                        </a>
-                    {% endif %}</li>
-            </ul>
-        </div><!-- /.navbar-collapse -->
-    </div><!-- /.container-fluid -->
+        <li>  <a class="btn btn-default" href="" title="{{ 'favourite_offers'|trans }}">
+                {{ 'favourite_offers'|trans }}
+            </a></li>
+
+        <li><a class="btn btn-default" href="{{ url('auth_logout') }}" title="{{ 'auth.logout.label'|trans }}">
+                {{ 'auth.logout.label'|trans }}
+            </a></li>
+        {% else %}
+        <a class="btn btn-default" href="{{ url('auth_login') }}" title="{{ 'auth.login.label'|trans }}">
+            {{ 'auth.login.label'|trans }}
+        </a>
+        <a class="btn btn-default" href="{{ url('user_add') }}" title="{{ 'user.add'|trans }}">
+            {{ 'user.add'|trans }}
+        </a>
+        {% endif %}</li>
+    </ul>
+</div><!-- /.navbar-collapse -->
+</div><!-- /.container-fluid -->
 <!--</nav>-->
 <div class="container">
     <div class="row">
