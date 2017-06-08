@@ -134,6 +134,15 @@
                   <source>favourite_offers</source>
                   <target>Ulubione</target>
             </trans-unit>
+            <trans-unit id="user_edit">
+                  <source>user_edit</source>
+                  <target>Moje konto</target>
+            </trans-unit>
+            <trans-unit id="myoffers">
+                  <source>myoffers</source>
+                  <target>Moje oferty</target>
+            </trans-unit>
+
         </body>
     </file>
 </xliff>

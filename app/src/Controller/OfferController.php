@@ -25,6 +25,11 @@ class OfferController implements ControllerProviderInterface
     {
         $controller = $app['controllers_factory'];
         $controller->get('/', [$this, 'indexAction'])->bind('offer_index');
+        $controller->get('/myoffers', [$this, 'displayUsersOffersAction'])
+            ->bind('myoffers');
+        $controller->get('/myoffers/page/{page}', [$this, 'displayUsersOffersAction'])
+            ->value('page', 1)
+            ->bind('myoffers_paginated');
         $controller->get('/page/{page}', [$this, 'indexAction'])
             ->value('page', 1)
             ->bind('offer_index_paginated');
@@ -235,6 +240,23 @@ class OfferController implements ControllerProviderInterface
                 'offer' => $offer,
                 'form' => $form->createView(),
             ]
+        );
+    }
+
+    public function displayUsersOffersAction(Application $app, $page =1 )
+    {
+        $token = $app['security.token_storage']->getToken();
+        if (null !== $token) {
+            $user = $token->getUser();
+            $userLogin = $user->getUsername();
+        }
+        $offerModel = new OfferRepository($app['db']);
+        $usersOffers = $offerModel->findOffersByUserLoginPaginated($userLogin, $page);
+        //var_dump($usersOffers);
+        return $app['twig']->render(
+           // 'offer/users_offers.html.twig',
+            'offer/myoffers.html.twig',
+            ['paginator' => $usersOffers]
         );
     }
 

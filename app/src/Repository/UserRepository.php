@@ -78,7 +78,7 @@ class UserRepository
     public function findOneById($id)
     {
         $queryBuilder = $this->queryAll()
-            ->where('id = :id')
+            ->where('login = :id')
             ->setParameter(':id', $id);
         $result = $queryBuilder->execute()->fetch();
 

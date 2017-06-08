@@ -30,9 +30,9 @@ class UserController implements ControllerProviderInterface
         $controller->get('/page/{page}', [$this, 'indexAction'])
             ->value('page', 1)
             ->bind('user_index_paginated');
-        $controller->get('/{id}', [$this, 'viewAction'])
-            ->bind('user_view')
-            ->assert('id', '[0-9]\d*');
+        $controller->get('/{name}', [$this, 'viewAction'])
+            ->bind('user_view');
+           // ->assert('id', '[0-9]\d*');
         $controller->match('/add', [$this, 'addAction'])
             ->method('POST|GET')
             ->bind('user_add');
@@ -81,7 +81,7 @@ class UserController implements ControllerProviderInterface
     {
         $model = new UserRepository($app['db']);
 
-        $id = $request->get('id');
+        $id = $request->get('name');
 
         return $app['twig']->render(
             'user/view.html.twig',

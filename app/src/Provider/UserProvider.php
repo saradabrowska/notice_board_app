@@ -58,11 +58,11 @@ class UserProvider implements UserProviderInterface
         );
     }
 
-    public function getUserId($login)
+   /* public function getUserId($login)
     {
-        $user = $this->loadUserByUsername($login);
-
-    }
+        $userLogin = $this->loadUserByUsername($login);
+        return $userLogin;
+    }*/
 
     /**
      * Refresh user.

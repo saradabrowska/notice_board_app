@@ -71,6 +71,48 @@ class OfferRepository
         $result = $queryBuilder->execute()->fetch();
         return !$result ? [] : $result;
     }
+
+    public function findOffersByUserLogin($login)
+    {
+        $userId = $this->findUserId($login);
+
+        $queryBuilder = $this->db->createQueryBuilder();
+
+        $queryBuilder->select('*')
+            ->from('offers', 'o')
+            ->join('o', 'users', 'u', 'o.users_id = u.id')
+            ->where('u.id = :id')
+            ->setParameter(':id', $userId);
+
+        $result = $queryBuilder->execute()->fetchAll();
+
+        return $result;
+
+    }
+    public function findOffersByUserLoginPaginated($login, $page=1)
+    {
+        $userId = $this->findUserId($login);
+
+        $queryBuilder = $this->db->createQueryBuilder();
+
+        $queryBuilder->select('*')
+            ->from('offers', 'o')
+            ->join('o', 'users', 'u', 'o.users_id = u.id')
+            ->where('u.id = :id')
+            ->setParameter(':id', $userId);
+
+        $countQueryBuilderModifier = function ($queryBuilder) {
+            $queryBuilder->select('COUNT(DISTINCT o.id) AS total_results')
+                ->setMaxResults(1);
+        };
+
+        $adapter = new DoctrineDbalAdapter($queryBuilder, $countQueryBuilderModifier);
+        $pagerfanta = new Pagerfanta($adapter);
+        $pagerfanta->setMaxPerPage(self::NUM_ITEMS);
+        $pagerfanta->setCurrentPage($page);
+
+        return $pagerfanta;
+    }
     /**
      * Save record.
      *
@@ -130,7 +172,7 @@ class OfferRepository
             ->setParameter(':offer_types_id', $match['offer_types_id'])
             ->setParameter(':property_types_id', $match['property_types_id'])
             ->setParameter(':cities_id', $match['cities_id']);
-        $result = $queryBuilder->execute()->fetch();
+        $result = $queryBuilder->execute()->fetchAll();
         var_dump($result);
         return !$result ? [] : $result;
     }
@@ -163,5 +205,17 @@ class OfferRepository
                 'name' => $cityName,
             ]
         );
+    }
+
+    protected function findUserId($login)
+    {
+        $queryBuilder = $this->db->createQueryBuilder();
+        $queryBuilder->select('id')
+            ->from('users')
+            ->where('login = :login')
+            ->setParameter(':login', $login);
+        $userId = current($queryBuilder->execute()->fetch());
+
+        return $userId;
     }
 }
