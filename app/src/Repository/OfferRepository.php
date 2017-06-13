@@ -6,6 +6,7 @@ namespace Repository;
 use Doctrine\DBAL\Connection;
 use Pagerfanta\Pagerfanta;
 use Pagerfanta\Adapter\DoctrineDbalAdapter;
+use Silex\Application;
 /**
  * Class OfferRepository.
  *
@@ -45,7 +46,11 @@ class OfferRepository
             $queryBuilder->select('COUNT(DISTINCT id) AS total_results')
                 ->setMaxResults(1);
         };
-        $adapter = new DoctrineDbalAdapter($this->queryAll($table), $countQueryBuilderModifier);
+
+        $queryBuilder = $this->queryAll($table)
+            ->orderBy('created_at', 'ASC');
+
+        $adapter = new DoctrineDbalAdapter($queryBuilder, $countQueryBuilderModifier);
         $pagerfanta = new Pagerfanta($adapter);
         $pagerfanta->setMaxPerPage(self::NUM_ITEMS);
         $pagerfanta->setCurrentPage($page);
@@ -72,9 +77,9 @@ class OfferRepository
         return !$result ? [] : $result;
     }
 
-    public function findOffersByUserLogin($login)
+    public function findOffersByUserLogin($userLogin)
     {
-        $userId = $this->findUserId($login);
+        $userId = $this->findUserId($userLogin);
 
         $queryBuilder = $this->db->createQueryBuilder();
 
@@ -82,24 +87,27 @@ class OfferRepository
             ->from('offers', 'o')
             ->join('o', 'users', 'u', 'o.users_id = u.id')
             ->where('u.id = :id')
-            ->setParameter(':id', $userId);
+            ->setParameter(':id', $userId)
+            ->orderBy('created_at', 'DESC');
 
         $result = $queryBuilder->execute()->fetchAll();
 
         return $result;
 
     }
-    public function findOffersByUserLoginPaginated($login, $page=1)
+    public function findOffersByUserLoginPaginated($userLogin, $page=1)
     {
-        $userId = $this->findUserId($login);
+
+        $userId = $this->findUserId($userLogin);
 
         $queryBuilder = $this->db->createQueryBuilder();
 
-        $queryBuilder->select('*')
+        $queryBuilder->select('o.id, title')
             ->from('offers', 'o')
             ->join('o', 'users', 'u', 'o.users_id = u.id')
             ->where('u.id = :id')
-            ->setParameter(':id', $userId);
+            ->setParameter(':id', $userId)
+            ->orderBy('created_at', 'DESC');
 
         $countQueryBuilderModifier = function ($queryBuilder) {
             $queryBuilder->select('COUNT(DISTINCT o.id) AS total_results')
@@ -120,14 +128,19 @@ class OfferRepository
      *
      * @return boolean Result
      */
-    public function save($object)
+    public function save($object, $userLogin)
     {
         $this->db->beginTransaction();
         try {
             $currentDateTime = new \DateTime();
             $object['created_at'] = $currentDateTime->format('Y-m-d H:i:s');
+
+            $userId = $this->findUserId($userLogin);
+            $object['users_id'] = $userId;
+
             $cityName = $object['cities_id'];
             unset($object['cities_id']);
+
             $cityId = $this->findCityId($cityName);
             if ($cityId) {
                 $object['cities_id'] = $cityId;
@@ -164,6 +177,7 @@ class OfferRepository
     }
     public function findMatchingOffers($match, $table)
     {
+
         $cityId = $this->findCityId($match['cities_id']);
         $match['cities_id'] = $cityId;
         $queryBuilder = $this->queryAll($table)
@@ -176,6 +190,33 @@ class OfferRepository
         var_dump($result);
         return !$result ? [] : $result;
     }
+
+    public function findMatchingOffersPaginated($match, $table, $page)
+    {
+
+        $cityId = $this->findCityId($match['cities_id']);
+        $match['cities_id'] = $cityId;
+
+        $countQueryBuilderModifier = function ($queryBuilder) {
+            $queryBuilder->select('COUNT(DISTINCT id) AS total_results')
+                ->setMaxResults(1);
+        };
+
+        $queryBuilder = $this->queryAll($table)
+            ->where('offer_types_id = :offer_types_id',
+                'property_types_id = :property_types_id', 'cities_id = :cities_id')
+            ->setParameter(':offer_types_id', $match['offer_types_id'])
+            ->setParameter(':property_types_id', $match['property_types_id'])
+            ->setParameter(':cities_id', $match['cities_id'])
+            ->orderBy('created_at', 'ASC');
+        $adapter = new DoctrineDbalAdapter($queryBuilder, $countQueryBuilderModifier);
+        $pagerfanta = new Pagerfanta($adapter);
+        $pagerfanta->setMaxPerPage(self::NUM_ITEMS);
+        $pagerfanta->setCurrentPage($page);
+        return $pagerfanta;
+    }
+
+
     /**
      * Query all records.
      *
@@ -218,4 +259,5 @@ class OfferRepository
 
         return $userId;
     }
+
 }

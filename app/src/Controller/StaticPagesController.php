@@ -25,11 +25,15 @@ class StaticPagesController implements ControllerProviderInterface
         $controller->match('/', [$this, 'findMatchingAction'])
             ->method('POST|GET')
             ->bind('homepage');
+        $controller->get('/page/{page}', [$this, 'displayMatchingAction'])
+            ->value('page', 1)
+            ->bind('matching_offers_paginated');
+
 
         return $controller;
     }
 
-    public function findMatchingAction(Application $app, Request $request)
+    public function findMatchingAction(Application $app, Request $request, $page = 1)
     {
         $offer = [];
         $form = $app['form.factory']->createBuilder(
@@ -40,15 +44,35 @@ class StaticPagesController implements ControllerProviderInterface
         $form->handleRequest($request);
         if($form->isSubmitted() && $form->isValid()) {
             $offerRepository = new OfferRepository($app['db']);
-            //var_dump($form->getData());
-            $offerRepository->findMatchingOffers($form->getData(), 'offers');
+
+            $offers = $offerRepository->findMatchingOffersPaginated($form->getData(), 'offers', $page);
+
+            return $app['twig']->render(
+                'staticPages/index.html.twig',
+                [
+                    'paginator' => $offers,
+                ]
+            );
         }
+
         return $app['twig']->render(
-            'staticPages/index.html.twig',
+            'staticPages/homepage.html.twig',
             [
                 'offer' => $offer,
                 'form' => $form->createView(),
             ]
         );
     }
+
+    public function displayMatchingAction($offers)
+    {
+        return $app['twig']->render(
+            'staticPages/index.html.twig',
+            [
+                'paginator' => $offers,
+            ]
+        );
+    }
+
+
 }

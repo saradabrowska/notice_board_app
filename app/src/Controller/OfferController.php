@@ -26,10 +26,10 @@ class OfferController implements ControllerProviderInterface
         $controller = $app['controllers_factory'];
         $controller->get('/', [$this, 'indexAction'])->bind('offer_index');
         $controller->get('/myoffers', [$this, 'displayUsersOffersAction'])
-            ->bind('myoffers');
+            ->bind('my_offers');
         $controller->get('/myoffers/page/{page}', [$this, 'displayUsersOffersAction'])
             ->value('page', 1)
-            ->bind('myoffers_paginated');
+            ->bind('my_offers_paginated');
         $controller->get('/page/{page}', [$this, 'indexAction'])
             ->value('page', 1)
             ->bind('offer_index_paginated');
@@ -65,7 +65,7 @@ class OfferController implements ControllerProviderInterface
 
         $offerModel = new OfferRepository($app['db']);
         return $app['twig']->render(
-            'offer/index.html.twig',
+            'offer/homepage.html.twig',
             ['paginator' => $offerModel->findAllPaginated($page, 'offers')]
         );
     }
@@ -109,9 +109,11 @@ class OfferController implements ControllerProviderInterface
             ['type_repository' => new OfferRepository($app['db'])]
         )->getForm();
         $form->handleRequest($request);
+        $userLogin = $this->getUserLogin($app);
+
          if($form->isSubmitted() && $form->isValid()) {
             $offerRepository = new OfferRepository($app['db']);
-            $offerRepository->save($form->getData());
+            $offerRepository->save($form->getData(), $userLogin);
 
             $app['session']->getFlashBag()->add(
                 'messages',
@@ -121,7 +123,7 @@ class OfferController implements ControllerProviderInterface
                 ]
             );
 
-            return $app->redirect($app['url_generator']->generate('offer_index'), 301);
+            return $app->redirect($app['url_generator']->generate('my_offers_paginated'), 301);
 
         }
 
@@ -166,8 +168,9 @@ class OfferController implements ControllerProviderInterface
         )->getForm();
         $form->handleRequest($request);
 
+        $userLogin = $this->getUserLogin($app);
         if ($form->isSubmitted() && $form->isValid()) {
-            $offerRepository->save($form->getData(), 'offers');
+            $offerRepository->save($form->getData(), $userLogin);
 
             $app['session']->getFlashBag()->add(
                 'messages',
@@ -177,7 +180,7 @@ class OfferController implements ControllerProviderInterface
                 ]
             );
 
-            return $app->redirect($app['url_generator']->generate('offer_index'), 301);
+            return $app->redirect($app['url_generator']->generate('offer_view', array('id' => $id)), 301);
         }
 
         return $app['twig']->render(
@@ -229,7 +232,7 @@ class OfferController implements ControllerProviderInterface
             );
 
             return $app->redirect(
-                $app['url_generator']->generate('offer_index'),
+                $app['url_generator']->generate('my_offers_paginated'),
                 301
             );
         }
@@ -243,13 +246,9 @@ class OfferController implements ControllerProviderInterface
         );
     }
 
-    public function displayUsersOffersAction(Application $app, $page =1 )
+    public function displayUsersOffersAction(Application $app, $page =1)
     {
-        $token = $app['security.token_storage']->getToken();
-        if (null !== $token) {
-            $user = $token->getUser();
-            $userLogin = $user->getUsername();
-        }
+        $userLogin = $this->getUserLogin($app);
         $offerModel = new OfferRepository($app['db']);
         $usersOffers = $offerModel->findOffersByUserLoginPaginated($userLogin, $page);
         //var_dump($usersOffers);
@@ -258,6 +257,17 @@ class OfferController implements ControllerProviderInterface
             'offer/myoffers.html.twig',
             ['paginator' => $usersOffers]
         );
+    }
+
+    protected function getUserLogin(Application $app)
+    {
+        $token = $app['security.token_storage']->getToken();
+        if (null !== $token) {
+            $user = $token->getUser();
+            $userLogin = $user->getUsername();
+        }
+
+        return $userLogin;
     }
 
 

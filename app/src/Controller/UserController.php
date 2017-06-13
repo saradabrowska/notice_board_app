@@ -62,7 +62,7 @@ class UserController implements ControllerProviderInterface
 
         $offerModel = new UserRepository($app['db']);
             return $app['twig']->render(
-            'user/index.html.twig',
+            'user/homepage.html.twig',
             ['paginator' => $offerModel->findAllPaginated($page, 'users')]
 
         );
