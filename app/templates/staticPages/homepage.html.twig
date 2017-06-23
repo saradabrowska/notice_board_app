@@ -8,7 +8,7 @@
     <h1>
         {{ 'title.homepage|trans' }}
     </h1>
-    {{ form_start(form, { method: 'post', action: url('homepage') }) }}
+    {{ form_start(form, { method: 'get', action: url('matching_offers_paginated') }) }}
     {{ form_widget(form) }}
     <input type="submit" value="{{ 'action.findMatchingTypes'|trans }}" class="btn btn-success" />
     {{ form_end(form) }}

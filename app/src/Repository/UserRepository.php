@@ -75,13 +75,13 @@ class UserRepository
      *
      * @return array|mixed Result
      */
-    public function findOneById($id)
+    public function findOneById($login)
     {
         $queryBuilder = $this->queryAll()
-            ->where('login = :id')
-            ->setParameter(':id', $id);
+            ->where('login = :login')
+            ->setParameter(':login', $login);
         $result = $queryBuilder->execute()->fetch();
-
+        //var_dump($result);
         if ($result) {
             $user_data = $this->findUserData($result['id']);
             $result = array_merge($result, $user_data);
@@ -97,19 +97,30 @@ class UserRepository
      *
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function save($user)
+    public function save($user, $userId = 0)
     {
         $this->db->beginTransaction();
-
+        var_dump($userId);
         try {
-            $email = $user['email'];
-            unset($user['email']);
-            unset($user['password_confirmation']);
-            $user['password'] = password_hash($user['password'], PASSWORD_BCRYPT);
-            $this->db->insert('users', $user);
-            $userId = $this->db->lastInsertId();
-            $this->addEmail($userId, $email);
+            var_dump($userId);
+            if($userId) {
+                $object = array('phone_number' => $user['phone_number'], 'first_name' => $user['first_name'],  'last_name' => $user['last_name'], 'email' => $user['last_name'] );
+                var_dump($object);
+               $this->db->update('users_data', $object, ['users_id' => $userId]);
 
+                $login = array('login' => $user['login']);
+                $this->db->update('users', $login, ['id' => $userId]);
+
+
+            } else {
+                $email = $user['email'];
+                unset($user['email']);
+                unset($user['password_confirmation']);
+                $user['password'] = password_hash($user['password'], PASSWORD_BCRYPT);
+                $this->db->insert('users', $user);
+                $userId = $this->db->lastInsertId();
+                $this->addEmail($userId, $email);
+            }
             $this->db->commit();
         } catch (DBALException $e) {
             $this->db->rollBack();
@@ -263,12 +274,26 @@ class UserRepository
      *
      * @return array Result
      */
+
+    public function findUserId($login)
+    {
+        $queryBuilder = $this->db->createQueryBuilder();
+        $queryBuilder->select('id')
+            ->from('users')
+            ->where('login = :login')
+            ->setParameter(':login', $login);
+        $userId = current($queryBuilder->execute()->fetch());
+
+        return $userId;
+    }
+
     protected function findUserData($userId)
     {
         $queryBuilder = $this->db->createQueryBuilder()
-            ->select('email', 'phone_number', 'first_name', 'last_name')
-            ->from('users_data')
-            ->where('users_id = :user_id')
+            ->select('d.email', 'd.phone_number', 'd.first_name', 'd.last_name', 'u.id', 'u.login')
+            ->from('users_data', 'd')
+            ->innerJoin('d', 'users', 'u', 'd.users_id= u.id')
+            ->where('d.users_id = :user_id')
             ->setParameter(':user_id', $userId, \PDO::PARAM_INT);
         $result = $queryBuilder->execute()->fetchAll();
         return !empty($result) ? current($result) : [];

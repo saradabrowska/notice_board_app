@@ -45,7 +45,7 @@
         <li>      <a class="btn btn-default" href="{{ url('my_offers_paginated') }}" title="{{ 'myoffers'|trans }}">
                 {{ 'myoffers'|trans }}
             </a></li>
-        <li>      <a class="btn btn-default" href="" title="{{ 'user_edit'|trans }}">
+        <li>      <a class="btn btn-default" href="{{ url('user_edit', {login: app.user.username }) }}" title="{{ 'user_edit'|trans }}">
                 {{ 'user_edit'|trans }}
             </a></li>
 

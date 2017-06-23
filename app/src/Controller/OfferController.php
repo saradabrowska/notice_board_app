@@ -31,8 +31,12 @@ class OfferController implements ControllerProviderInterface
             ->value('page', 1)
             ->bind('my_offers_paginated');
         $controller->get('/page/{page}', [$this, 'indexAction'])
+            ->value('params', '')
             ->value('page', 1)
             ->bind('offer_index_paginated');
+        $controller->get('price/page/{page}', [$this, 'IndexSortedByPriceAction'])
+            ->value('page', 1)
+            ->bind('offer_sorted_price');
         $controller->get('/{id}', [$this, 'viewAction'])
             ->bind('offer_view')
             ->assert('id', '[0-9]\d*');
@@ -47,6 +51,8 @@ class OfferController implements ControllerProviderInterface
             ->method('GET|POST')
             ->assert('id', '[0-9]\d*')
             ->bind('offer_delete');
+        $controller->get('/sort/{param}', [$this, 'displayOffersSorted'])
+            ->bind('offers_sorted');
 
 
 
@@ -62,14 +68,36 @@ class OfferController implements ControllerProviderInterface
      */
     public function indexAction(Application $app, $page = 1)
     {
-
+        if($app['session']->get('param') !== 'created_at')
+        {
+            $app['session']->set('param', 'created_at');
+        }
+        $params = $app['session']->get('param');
         $offerModel = new OfferRepository($app['db']);
         return $app['twig']->render(
-            'offer/homepage.html.twig',
-            ['paginator' => $offerModel->findAllPaginated($page, 'offers')]
+            'offer/index.html.twig',
+            ['paginator' => $offerModel->findAllPaginated($page, 'offers', $params),
+             'route_name' => 'offer_index_paginated']
         );
     }
 
+    public function indexSortedByPriceAction(Application $app, $page = 1)
+    {
+        if($app['session']->get('param') !== 'price')
+        {
+            $app['session']->set('param', 'price');
+        }
+
+        $params = $app['session']->get('param');
+        var_Dump($params);
+        $offerModel = new OfferRepository($app['db']);
+        return $app['twig']->render(
+            'offer/index.html.twig',
+            ['paginator' => $offerModel->findAllPaginated($page, 'offers', $params),
+             'route_name' => 'offer_sorted_price']
+
+        );
+    }
     /**
      * View action.
      *
@@ -246,14 +274,14 @@ class OfferController implements ControllerProviderInterface
         );
     }
 
-    public function displayUsersOffersAction(Application $app, $page =1)
+    public function displayUsersOffersAction(Application $app, $page = 1)
     {
         $userLogin = $this->getUserLogin($app);
         $offerModel = new OfferRepository($app['db']);
         $usersOffers = $offerModel->findOffersByUserLoginPaginated($userLogin, $page);
-        //var_dump($usersOffers);
+       // var_dump($usersOffers);
         return $app['twig']->render(
-           // 'offer/users_offers.html.twig',
+
             'offer/myoffers.html.twig',
             ['paginator' => $usersOffers]
         );

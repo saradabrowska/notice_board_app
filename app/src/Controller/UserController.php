@@ -30,13 +30,13 @@ class UserController implements ControllerProviderInterface
         $controller->get('/page/{page}', [$this, 'indexAction'])
             ->value('page', 1)
             ->bind('user_index_paginated');
-        $controller->get('/{name}', [$this, 'viewAction'])
-            ->bind('user_view');
-           // ->assert('id', '[0-9]\d*');
         $controller->match('/add', [$this, 'addAction'])
             ->method('POST|GET')
             ->bind('user_add');
-        $controller->match('/{id}/edit', [$this, 'editAction'])
+        $controller->get('/{name}', [$this, 'viewAction'])
+            ->bind('user_view');
+           // ->assert('id', '[0-9]\d*');
+        $controller->match('/{login}/edit', [$this, 'editAction'])
             ->method('POST|GET')
             ->assert('id', '[0-9]\d*')
             ->bind('user_edit');
@@ -141,10 +141,10 @@ class UserController implements ControllerProviderInterface
      *
      * @return \Symfony\Component\HttpFoundation\Response HTTP Response
      */
-    public function editAction(Application $app, $id, Request $request)
+    public function editAction(Application $app, $login, Request $request)
      {
          $userRepository = new UserRepository($app['db']);
-         $user= $userRepository->findOneById($id);
+         $user= $userRepository->getUserByLogin($login);
          if (!$user) {
              $app['session']->getFlashBag()->add(
                  'messages',
@@ -156,15 +156,18 @@ class UserController implements ControllerProviderInterface
 
              return $app->redirect($app['url_generator']->generate('offer_index'));
          }
-
+         $userLogin = $user['login'];
+        // var_dump($userId);
+        $userData = $userRepository->findOneById($userLogin);
+        $userId = $userData['id'];
          $form = $app['form.factory']->createBuilder(
              UserType::class,
-             $user
+             $userData
          )->getForm();
          $form->handleRequest($request);
 
          if ($form->isSubmitted() && $form->isValid()) {
-             $userRepository->save($form->getData());
+             $userRepository->save($form->getData(), $userId);
 
              $app['session']->getFlashBag()->add(
                  'messages',

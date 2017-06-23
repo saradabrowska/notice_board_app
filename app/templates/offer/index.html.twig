@@ -8,6 +8,12 @@
     <h1>
         {{ 'title.offers_list'|trans }}
     </h1>
+    <a href="{{ url('offer_sorted_price') }}" title="{{ 'label.sort_by_price'|trans }}">
+        {{ 'sort_by.price'|trans }}
+    </a>
+    <a href="{{ url('offer_index_paginated') }}" title="{{ 'label.sort_by_price'|trans }}">
+        {{ 'sort_by.date'|trans }}
+    </a>
     {%  if paginator|length %}
         <ul>
             {% for row in paginator %}
@@ -24,7 +30,7 @@
             {% endfor %}
             {%  include 'default/_paginator.html.twig' with {
             paginator: paginator,
-            route_name: 'offer_index_paginated',
+            route_name: route_name,
             } %}
         </ul>
     {% else %}
